@@ -1,4 +1,0 @@
-baseURL = "http://hub.zhox.com/"
-languageCode = "en-us"
-title = "Random musings about The GHC Haskell Compiler on Windows"
-theme = "cocoa-eh"
