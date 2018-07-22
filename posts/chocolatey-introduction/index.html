@@ -56,7 +56,7 @@ The GHC package https://chocolatey.">
 
 <meta itemprop="datePublished" content="2018-07-22T13:14:25&#43;01:00" />
 <meta itemprop="dateModified" content="2018-07-22T13:14:25&#43;01:00" />
-<meta itemprop="wordCount" content="1128">
+<meta itemprop="wordCount" content="1146">
 
 
 
@@ -269,7 +269,9 @@ it doesn&rsquo;t hit <code>MAX_PATH</code> as easily. (<strong><em>NOTE:</em></s
 end user programs. So in the future once <code>cabal</code> is compiled with <code>GHC 8.6</code> this won&rsquo;t be needed, but for
 backwards compatibility should still be used for now.</strong>)</p>
 
-<p>The <code>http-transport</code> is unimportant, it can be omitted but I prefer to not have it use <code>curl</code> from <code>msys2</code>.</p>
+<p>The <code>http-transport</code> is unimportant, it can be omitted but I prefer to not have it use <code>curl</code> from <code>msys2</code>
+just because it&rsquo;s an emulated binary and will be slower than the plain <code>http-transport</code> or <code>powershell</code>
+transport options.</p>
 
 <pre><code>cache:
 - &quot;C:\\SR&quot;
