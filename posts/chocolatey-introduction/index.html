@@ -56,7 +56,7 @@ The GHC package https://chocolatey.">
 
 <meta itemprop="datePublished" content="2018-07-22T13:14:25&#43;01:00" />
 <meta itemprop="dateModified" content="2018-07-22T13:14:25&#43;01:00" />
-<meta itemprop="wordCount" content="1113">
+<meta itemprop="wordCount" content="1128">
 
 
 
@@ -160,8 +160,9 @@ refreshenv
 </code></pre>
 
 <p>Will install both <code>GHC 8.4.1</code> and <code>8.2.2</code> at once, with <code>GHC 8.4.1</code> being accessible
-by the un-suffixed <code>ghc</code> command. Using <code>cabal new-build</code>&rsquo;s <code>-w</code> flag you can easily switch
-between the two versions:</p>
+by the un-suffixed <code>ghc</code> command. The <code>-m</code> option means allow <code>multiple</code> which won&rsquo;t
+force only one version to be installed. Using <code>cabal new-build</code>&rsquo;s <code>-w</code> flag you can
+easily switch between the two versions:</p>
 
 <pre><code>cabal new-build -w ghc-8.4.1
 cabal new-build -w ghc-8.2.2
@@ -295,7 +296,7 @@ would be a no-op. The <code>-y</code> makes <code>Chocolatey</code> suppress the
 </code></pre>
 
 <p>As before we reload the <code>environment variables</code>, which unfortunately also clears the custom ones <code>AppVeyor</code> sets.
-To restore the ones we need we modify the <code>PATH</code> to conatin <code>msys2</code> and where we expect older <code>GHC</code>s to have been installed.</p>
+To restore the ones we need we modify the <code>PATH</code> to contain <code>msys2</code> and where we expect older <code>GHC</code>s to have been installed.</p>
 
 <p><strong><em>NOTE:</em></strong> <strong>If you actually intend to use <code>pacman</code> packages, please set the appropriate <code>mingw</code> for the architecture you intend
 to use. The above examples all set the <code>64 bit</code> paths.</strong></p>
