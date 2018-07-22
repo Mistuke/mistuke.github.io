@@ -6,18 +6,20 @@
     <description>Recent content in Posts on Random thought from a compiler engineer.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 May 2018 10:05:53 +0100</lastBuildDate>
+    <lastBuildDate>Sun, 22 Jul 2018 13:14:25 +0100</lastBuildDate>
     
 	<atom:link href="https://hub.zhox.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Let&#39;s talk about how the Haskell compiler GHC does linking (Part 1)</title>
-      <link>https://hub.zhox.com/posts/welcome-to-new-blog/</link>
-      <pubDate>Sun, 06 May 2018 10:05:53 +0100</pubDate>
+      <title>Haskell &amp; AppVeyor Chocolatey Introduction</title>
+      <link>https://hub.zhox.com/posts/chocolatey-introduction/</link>
+      <pubDate>Sun, 22 Jul 2018 13:14:25 +0100</pubDate>
       
-      <guid>https://hub.zhox.com/posts/welcome-to-new-blog/</guid>
-      <description></description>
+      <guid>https://hub.zhox.com/posts/chocolatey-introduction/</guid>
+      <description>For those who are unaware, Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/.
+Chocolatey also contains some of my own packages for installing GHC and cabal (along with packages to fully automate setting up a GHC dev environment etc, more on these at a later date).
+The GHC package https://chocolatey.</description>
     </item>
     
   </channel>

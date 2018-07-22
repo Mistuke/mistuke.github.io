@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Tamar Christina">
+<meta name="description" content="Random compiler thoughts">
+<meta name="generator" content="Hugo 0.40.2" />
+<title>Haskell &amp; AppVeyor Chocolatey Introduction</title>
+<link rel="shortcut icon" href="https://hub.zhox.com/images/favicon.ico">
+<link rel="stylesheet" href="https://hub.zhox.com/css/style.css">
+<link rel="stylesheet" href="https://hub.zhox.com/css/highlight.css">
+
+<link rel="stylesheet" href="https://hub.zhox.com/css/styles.css">
+
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+
+
+
+<link href="https://hub.zhox.com/index.xml" rel="alternate" type="application/rss+xml" title="Random thought from a compiler engineer." />
+
+
+<meta property="og:title" content="Haskell &amp; AppVeyor Chocolatey Introduction" />
+<meta property="og:description" content="For those who are unaware, Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/.
+Chocolatey also contains some of my own packages for installing GHC and cabal (along with packages to fully automate setting up a GHC dev environment etc, more on these at a later date).
+The GHC package https://chocolatey." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://hub.zhox.com/posts/chocolatey-introduction/" />
+
+
+
+<meta property="article:published_time" content="2018-07-22T13:14:25&#43;01:00"/>
+
+<meta property="article:modified_time" content="2018-07-22T13:14:25&#43;01:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Haskell &amp; AppVeyor Chocolatey Introduction">
+<meta itemprop="description" content="For those who are unaware, Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/.
+Chocolatey also contains some of my own packages for installing GHC and cabal (along with packages to fully automate setting up a GHC dev environment etc, more on these at a later date).
+The GHC package https://chocolatey.">
+
+
+<meta itemprop="datePublished" content="2018-07-22T13:14:25&#43;01:00" />
+<meta itemprop="dateModified" content="2018-07-22T13:14:25&#43;01:00" />
+<meta itemprop="wordCount" content="1113">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Haskell &amp; AppVeyor Chocolatey Introduction"/>
+<meta name="twitter:description" content="For those who are unaware, Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/.
+Chocolatey also contains some of my own packages for installing GHC and cabal (along with packages to fully automate setting up a GHC dev environment etc, more on these at a later date).
+The GHC package https://chocolatey."/>
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://hub.zhox.com/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://hub.zhox.com/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>Haskell &amp; AppVeyor Chocolatey Introduction</h1>
+        <h2 class="subtitle"></h2>
+        <h2 class="headline">
+        July 22, 2018
+        <br>
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>For those who are unaware, Windows has had quite a push lately to provide script-able
+ways to install packages. One such attempt that has gained quite a lot of traction is
+<code>Chocolatey</code> <a href="https://chocolatey.org/">https://chocolatey.org/</a>.</p>
+
+<p><code>Chocolatey</code> also contains some of my own packages for installing <code>GHC</code> and <code>cabal</code>
+(along with packages to fully automate setting up a GHC dev environment etc, more on these
+at a later date).</p>
+
+<p>The <code>GHC</code> package <a href="https://chocolatey.org/packages/ghc">https://chocolatey.org/packages/ghc</a> goes all the way back to <code>GHC 6.10.1</code>
+and the <code>cabal-install</code> package <a href="https://chocolatey.org/packages/cabal">https://chocolatey.org/packages/cabal</a> to <code>cabal-install 0.6.0</code>.</p>
+
+<p>These are quite handy for those who use the <code>cabal+ghc</code> workflow like myself and like to switch
+compiler versions easy, or script environment setups.</p>
+
+<p>After installing <a href="https://chocolatey.org/install#installing-chocolatey">Chocolatey</a>
+ one can install <code>GHC</code> simply using the command</p>
+
+<pre><code>choco install ghc
+refreshenv
+</code></pre>
+
+<p>which will install and reconfigure the latest released <code>GHC</code> along with the latest
+<code>cabal-install</code>. The <code>refreshenv</code> is needed in order to reload the <code>PATH</code> variables which
+an install of the package changes.  This is normally not needed for a Chocolatey package
+but for <code>GHC</code> it is needed to preserve an assumption the <code>GHC</code> bindists make about their layout.</p>
+
+<p>For older packages this dependencies on <code>cabal</code> isn&rsquo;t specified so one way that works
+with all versions is:</p>
+
+<pre><code>choco install cabal ghc
+refreshenv
+</code></pre>
+
+<p>You can also use <code>chocolatey</code> to install the latest <code>GHC</code> <code>Alpha</code>, <code>Beta</code> and <code>RC</code> simply by adding
+<code>-pre</code> to the install command. e.g.:</p>
+
+<pre><code>choco install cabal ghc -pre
+refreshenv
+</code></pre>
+
+<p>An existing install can be upgraded using the <code>upgrade</code> command</p>
+
+<pre><code>choco upgrade ghc
+refreshenv
+</code></pre>
+
+<p>and specific versions can be installed using <code>--version</code>:</p>
+
+<pre><code>choco install ghc --version 8.4.1
+refreshenv
+</code></pre>
+
+<p>The chocolatey packages are self contained, which means you can also install multiple <code>GHC</code>
+versions side-by-side and switch between them using the full versioned form. e.g.</p>
+
+<pre><code>choco install ghc --version 8.4.1
+choco install ghc --version 8.2.2 -m
+refreshenv
+</code></pre>
+
+<p>Will install both <code>GHC 8.4.1</code> and <code>8.2.2</code> at once, with <code>GHC 8.4.1</code> being accessible
+by the un-suffixed <code>ghc</code> command. Using <code>cabal new-build</code>&rsquo;s <code>-w</code> flag you can easily switch
+between the two versions:</p>
+
+<pre><code>cabal new-build -w ghc-8.4.1
+cabal new-build -w ghc-8.2.2
+</code></pre>
+
+<p>So take a look at the Chocolatey based distributions, which can also be used to install a full
+Haskell dev environment using e.g. <code>vscode</code>.</p>
+
+<pre><code>choco install ghc vscode
+Update-SessionEnvironment
+code --install-extension justusadam.language-haskell
+</code></pre>
+
+<p>For those who like to test their packages against the bleeding edge, just like <code>Hvr</code>&rsquo;s
+excellent <a href="https://launchpad.net/~hvr/+ppa-packages">PPA</a> for Ubuntu I provide nightlies
+for both <a href="https://www.myget.org/feed/mistuke/package/nuget/ghc-head">GHC</a> and
+<a href="https://www.myget.org/feed/mistuke/package/nuget/cabal-head">cabal-install</a> under my <code>NuGet</code> feed.</p>
+
+<p>The current build frequency for both is Nightly, but depending on popularity/activity I may scale them
+to weekly or longer. Builds are retained for a year before they are deleted, just as before I may extend or
+shorten the period in the future depending on feedback. <code>GHC</code> builds are currently <strong>64 bit ONLY</strong>.</p>
+
+<p>To use them first add my <code>NuGet</code> feed as a <code>Chocolatey source</code> and that will give you access to the
+packages <code>cabal-head</code> and <code>ghc-head</code>.</p>
+
+<pre><code>choco source add -n mistuke -s https://www.myget.org/F/mistuke/api/v2
+choco install ghc-head cabal-head -pre
+refreshenv
+</code></pre>
+
+<p><code>ghc-head</code> will always install <code>cabal-head</code>, this is because newer <code>GHC</code> may require a bleeding edge
+<code>Cabal</code>. If you have them already installed you can just <code>upgrade</code> existing <code>nightlies</code> or <code>downgrade</code>
+as long as the build is still around.  These are unsupported builds, If you do feel like you&rsquo;ve found
+a genuine bug, when reporting them my package feed can tell you which <code>commit</code> the build was made from.</p>
+
+<p>In the future I will also be providing some of my own internal builds for wider testing before they get
+merged into <code>upstream master</code>.</p>
+
+<h2 id="appveyor-continuous-integration">AppVeyor Continuous Integration</h2>
+
+<p><code>AppVeyor</code> comes with <code>Chocolatey</code> pre-installed. Which means you can use the exact same commands
+as above to set up a CI script for your project using <code>AppVeyor</code>.  For instance the <a href="https://github.com/haskell/win32/blob/master/appveyor.yml">Win32</a> library
+I maintain uses the following <code>AppVeyor</code> script for Windows testing:</p>
+
+<pre><code>clone_folder: &quot;c:\\WORK&quot;
+
+environment:
+  global:
+    CABOPTS:  &quot;--store-dir=C:\\SR --http-transport=plain-http&quot;
+  matrix:
+    # 64 bit builds
+    - GHCVER: &quot;8.4.2&quot;
+      CHOCOPTS:
+    - GHCVER: &quot;8.2.2&quot;
+      CHOCOPTS:
+    - GHCVER: &quot;8.0.2&quot;
+      CHOCOPTS:
+    - GHCVER: &quot;7.10.3.2&quot;
+      CHOCOPTS:
+    - GHCVER: &quot;7.8.4.1&quot;
+      CHOCOPTS:
+    # 32 bit builds
+    - GHCVER: &quot;8.4.2&quot;
+      CHOCOPTS: --forcex86
+    - GHCVER: &quot;8.2.2&quot;
+      CHOCOPTS: --forcex86
+    - GHCVER: &quot;8.0.2&quot;
+      CHOCOPTS: --forcex86
+    - GHCVER: &quot;7.10.3.2&quot;
+      CHOCOPTS: --forcex86
+    - GHCVER: &quot;7.8.4.1&quot;
+      CHOCOPTS: --forcex86
+
+cache:
+- &quot;C:\\SR&quot;
+
+install:
+ - &quot;choco install -y ghc --version %GHCVER% %CHOCOPTS%&quot;
+ - &quot;choco install -y cabal %CHOCOPTS%&quot;
+ - &quot;refreshenv&quot;
+ - &quot;set PATH=C:\\ghc\\ghc-%GHCVER%:C:\\msys64\\mingw64\\bin;C:\\msys64\\usr\\bin;%PATH%&quot;
+ - &quot;cabal --version&quot;
+ - &quot;ghc --version&quot;
+ - &quot;cabal %CABOPTS% update -v&quot;
+
+build: off
+
+test_script:
+ - IF EXIST configure.ac bash -c &quot;autoreconf -i&quot;
+ - &quot;echo packages:. &gt; cabal.project&quot;
+ - &quot;cabal %CABOPTS% new-build -j1 all&quot;
+</code></pre>
+
+<p>This tests both <code>x86_64</code> and <code>x86</code> versions of the last 5 <code>GHC</code> against any pull requests to <code>Win32</code>.</p>
+
+<p>To point out some important bits:</p>
+
+<pre><code>  global:
+    CABOPTS:  &quot;--store-dir=C:\\SR --http-transport=plain-http&quot;
+</code></pre>
+
+<p>The <code>--store-dir</code> flag is used to shorten the path of the <code>new-build nix</code> style package store folder so
+it doesn&rsquo;t hit <code>MAX_PATH</code> as easily. (<strong><em>NOTE:</em></strong> <strong><code>GHC 8.6</code> and newer no longer have this limitation for
+end user programs. So in the future once <code>cabal</code> is compiled with <code>GHC 8.6</code> this won&rsquo;t be needed, but for
+backwards compatibility should still be used for now.</strong>)</p>
+
+<p>The <code>http-transport</code> is unimportant, it can be omitted but I prefer to not have it use <code>curl</code> from <code>msys2</code>.</p>
+
+<pre><code>cache:
+- &quot;C:\\SR&quot;
+</code></pre>
+
+<p>This caches the <code>nix</code> style package cache so that dependencies don&rsquo;t get built over and over again. This can
+save a significant amount of time when building your project. <code>AppVeyor</code> has an hour build limit.</p>
+
+<pre><code> - IF EXIST configure.ac bash -c &quot;autoreconf -i&quot;
+</code></pre>
+
+<p>This allows packages like <code>network</code> to be used from the repo where there is no final <code>configure</code> script yet.</p>
+
+<pre><code> - &quot;choco install -y ghc --version %GHCVER% %CHOCOPTS%&quot;
+ - &quot;choco install -y cabal %CHOCOPTS%&quot;
+</code></pre>
+
+<p>This command installs the compiler and the latest <code>cabal-install</code> which is backward compatible with older <code>GHC</code>s.
+The explicit <code>cabal</code> install is for older packages which didn&rsquo;t have a dependency on <code>cabal</code>.  For newer <code>GHC</code> this
+would be a no-op. The <code>-y</code> makes <code>Chocolatey</code> suppress the script execution question with a default answer of <code>yes</code>.</p>
+
+<pre><code> - &quot;refreshenv&quot;
+ - &quot;set PATH=C:\\ghc\\ghc-%GHCVER%:C:\\msys64\\mingw64\\bin;C:\\msys64\\usr\\bin;%PATH%&quot;
+</code></pre>
+
+<p>As before we reload the <code>environment variables</code>, which unfortunately also clears the custom ones <code>AppVeyor</code> sets.
+To restore the ones we need we modify the <code>PATH</code> to conatin <code>msys2</code> and where we expect older <code>GHC</code>s to have been installed.</p>
+
+<p><strong><em>NOTE:</em></strong> <strong>If you actually intend to use <code>pacman</code> packages, please set the appropriate <code>mingw</code> for the architecture you intend
+to use. The above examples all set the <code>64 bit</code> paths.</strong></p>
+
+<p>If you want to report a bug against the packaging (the chocolatey packages and not the binaries themselves) please do so on my
+GitHub project for the packages. <a href="https://github.com/Mistuke/CabalChoco">Cabal</a> and <a href="https://github.com/Mistuke/GhcChoco">GHC</a>.</p>
+
+<p>I do plan on adding a <code>Haskell Platform</code> package in the near future. Happy hacking.</p>
+
+<p>&ndash; Tamar</p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://hub.zhox.com/images/avatar.png">
+    <div>
+        <span class="dark">Tamar Christina</span>
+        <span>GNU developer by day, GHC (and others) Windows contributor by night.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fhub.zhox.com%2fposts%2fchocolatey-introduction%2f - Haskell%20%26%20AppVeyor%20Chocolatey%20Introduction "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/Mistuke">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/tamarchristina">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2018 Tamar Christina
+    
+    <br />
+    <br >
+    <div class="attrib"><a href="http://www.freepik.com">Background image by klyaksun / Freepik</a></div>
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://hub.zhox.com/js/main.js"></script>
+<script src="https://hub.zhox.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-118757070-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>
