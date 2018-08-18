@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Tamar Christina">
+<meta name="description" content="Random compiler thoughts">
+<meta name="generator" content="Hugo 0.40.2" />
+<title>Why doesn&#39;t GHCi on Windows find my DLL</title>
+<link rel="shortcut icon" href="https://hub.zhox.com/images/favicon.ico">
+<link rel="stylesheet" href="https://hub.zhox.com/css/style.css">
+<link rel="stylesheet" href="https://hub.zhox.com/css/highlight.css">
+
+<link rel="stylesheet" href="https://hub.zhox.com/css/styles.css">
+
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+
+
+
+<link href="https://hub.zhox.com/index.xml" rel="alternate" type="application/rss+xml" title="Random thought from a compiler engineer." />
+
+
+<meta property="og:title" content="Why doesn&#39;t GHCi on Windows find my DLL" />
+<meta property="og:description" content="You have a new package you want to try out. You try to install the package only to be greeted with
+GHCi, version 8.2.2: http://www.haskell.org/ghc/ :? for help &lt;command line&gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126)) Whilst trying to load: (dynamic) my-cool-library Additional directories searched: (none)  by GHCi. Confused you look into your libraries folder and see my-cool-library-7.dll. Why is the file name incorrect?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://hub.zhox.com/posts/why-doesnt-ghc-on-windows-find-my-dll/" />
+
+
+
+<meta property="article:published_time" content="2018-08-18T10:11:47&#43;01:00"/>
+
+<meta property="article:modified_time" content="2018-08-18T10:11:47&#43;01:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Why doesn&#39;t GHCi on Windows find my DLL">
+<meta itemprop="description" content="You have a new package you want to try out. You try to install the package only to be greeted with
+GHCi, version 8.2.2: http://www.haskell.org/ghc/ :? for help &lt;command line&gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126)) Whilst trying to load: (dynamic) my-cool-library Additional directories searched: (none)  by GHCi. Confused you look into your libraries folder and see my-cool-library-7.dll. Why is the file name incorrect?">
+
+
+<meta itemprop="datePublished" content="2018-08-18T10:11:47&#43;01:00" />
+<meta itemprop="dateModified" content="2018-08-18T10:11:47&#43;01:00" />
+<meta itemprop="wordCount" content="2315">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Why doesn&#39;t GHCi on Windows find my DLL"/>
+<meta name="twitter:description" content="You have a new package you want to try out. You try to install the package only to be greeted with
+GHCi, version 8.2.2: http://www.haskell.org/ghc/ :? for help &lt;command line&gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126)) Whilst trying to load: (dynamic) my-cool-library Additional directories searched: (none)  by GHCi. Confused you look into your libraries folder and see my-cool-library-7.dll. Why is the file name incorrect?"/>
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://hub.zhox.com/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://hub.zhox.com/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>Why doesn&#39;t GHCi on Windows find my DLL</h1>
+        <h2 class="subtitle"></h2>
+        <h2 class="headline">
+        August 18, 2018
+        <br>
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<p>You have a new package you want to try out. You try to install the package only to be greeted with</p>
+
+<pre><code>GHCi, version 8.2.2: http://www.haskell.org/ghc/  :? for help
+&lt;command line&gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126))
+Whilst trying to load:  (dynamic) my-cool-library
+Additional directories searched: (none)
+</code></pre>
+
+<p>by GHCi.  Confused you look into your <code>libraries</code> folder and see <code>my-cool-library-7.dll</code>.  Why is the file name incorrect? Why is GHCi looking for <code>my-cool-library.dll</code> instead of <code>my-cool-library-7.dll</code>.</p>
+
+<p>You rename the file and things <em>seem</em> to work.  This is actually quite dangerous and wrong. Unfortunately this is also often suggested as what to do.</p>
+
+<p>To understand why you should not do this, let&rsquo;s take a step back and give a crash course on linkers.</p>
+
+<h2 id="import-libraries">Import Libraries</h2>
+
+<p>First off, let&rsquo;s talk about what you should be giving to the compiler.
+On Unix systems the shared library contains internally the <code>PLT</code> and the <code>GOT</code> sections along with the binding
+method required.  On Windows, this information is externalized into a file called an <code>import library</code>.</p>
+
+<p>All Microsoft compilers will only accept import libraries to link against. Unfortunately Binutils also accepts DLLs
+directly, mostly due to historical reasons.</p>
+
+<p>When it comes to import libraries there are two versions:</p>
+
+<ol>
+<li>The official format is documented in the Microsoft PE
+specification. Libraries produced by this format typically contain the file extension <code>.lib</code>.</li>
+<li>The second format is an unofficial format invited by and only supported by GNU tools.  This format is based on the normal object code format and typically result in larger and more inefficient libraries.  Libraries in this format typically end with the extensions <code>.dll.a</code> or <code>.a</code> depending on the tool that created them.  They work using a hack around pseudo symbols that start with <code>_head_</code> in the name. GHC and GCC support both formats.</li>
+</ol>
+
+<p>So what is one supposed to do when you only have a DLL?  Create an import library from the Microsoft DEF file.
+<a href="https://msdn.microsoft.com/en-us/library/28d6s79h.aspx">https://msdn.microsoft.com/en-us/library/28d6s79h.aspx</a> and when creating a shared library, always ask the compiler
+to also produce an import library! (This is the default for GHC and Microsoft compilers.)</p>
+
+<h2 id="dll-hell">DLL Hell</h2>
+
+<p>Before Microsoft solved &ldquo;DLL&rdquo; hell once and for all using <code>side-by-side</code> assemblies, different projects used import libraries to support multiple versions of the same DLL on the same system at the same time.  They did this by versioning the DLL by adding information to the name of the DLL to make them unique. e.g. to support multiple versions of <code>my-cool-library</code> on the user&rsquo;s machine the DLLs would be named <code>my-cool-library-1.dll</code>, <code>my-cool-library-2.dll</code>,..,<code>my-cool-library-n.dll</code>. The import library would be named <code>my-cool-library.lib</code> so that <code>-lmy-cool-library</code> still works.</p>
+
+<p>The import library will point the linker to which version of the DLL to enter into the program&rsquo;s <code>IAT</code>. The <code>Import Address Table</code> contains a list of <code>DLL</code> and <code>symbols</code> to import from each.</p>
+
+<p>GHC knows how to properly deal with these redirects.</p>
+
+<h2 id="lazy-loading">Lazy loading</h2>
+
+<p>As I mentioned before, Windows externalizes the binding type.  Windows defaults to strict binding, i.e. when the program starts up it forces the resolution of all symbols.  Including ones you may never need.</p>
+
+<p>Lazy bindings (which is the default in System-V) is also supported via the import library. This is a choice made by
+the programmer during library creation time.  When lazy loading the library gets a chance to resolve each symbol.  This allows it to do symbol resolution and redirection.</p>
+
+<p>When linking directly against a DLL you may be changing the semantics of the library due to it switch from lazy to eager binding.</p>
+
+<h2 id="relocations">Relocations</h2>
+
+<p>On any given compilation pipeline you generally have three main phases. <code>compiling</code>, <code>assembling</code> and <code>linking</code>.  Input source files like <code>.hs</code> and <code>.c</code> files are compiled into assembly language for the given target in the first phase.  The compiler has no idea where the functions that are defined in another source or library actually is.  The compiler simply emits a <code>call</code> or <code>branch</code> to the symbol.</p>
+
+<p>Let&rsquo;s look at an example. The following C file</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+
+int main ()
+{
+   printf(&quot;Hello World&quot;);
+}
+</code></pre>
+
+<p>gets compiled into the following x86_64 assembly file</p>
+
+<pre><code>.LC0:
+        .ascii &quot;Hello World\0&quot;
+        .text
+        .globl  main
+main:
+        pushq   %rbp
+        movq    %rsp, %rbp
+        subq    $32, %rsp
+        call    __main
+        leaq    .LC0(%rip), %rcx
+        call    printf
+        movl    $0, %eax
+        addq    $32, %rsp
+        popq    %rbp
+        ret
+</code></pre>
+
+<p>This assembly file is then given to the assembler which will produce object code.  Since it doesn&rsquo;t know the address of these function it emits what&rsquo;s called a <code>relocation</code> against the symbol¹.</p>
+
+<p>¹ In general any function or global data reference is called a <code>symbol</code>.</p>
+
+<p>If we look at the object file we&rsquo;ll get our first hint of the relocation:</p>
+
+<pre><code>Disassembly of section .text:
+
+0000000000000000 &lt;main&gt;:
+   0:   55                      push   %rbp
+   1:   48 89 e5                mov    %rsp,%rbp
+   4:   48 83 ec 20             sub    $0x20,%rsp
+   8:   e8 00 00 00 00          callq  d &lt;main+0xd&gt;
+                        9: R_X86_64_PC32        __main
+   d:   48 8d 0d 00 00 00 00    lea    0x0(%rip),%rcx        # 14 &lt;main+0x14&gt;
+                        10: R_X86_64_PC32       .rdata
+  14:   e8 00 00 00 00          callq  19 &lt;main+0x19&gt;
+                        15: R_X86_64_PC32       printf
+  19:   b8 00 00 00 00          mov    $0x0,%eax
+  1e:   48 83 c4 20             add    $0x20,%rsp
+  22:   5d                      pop    %rbp
+  23:   c3                      retq
+</code></pre>
+
+<p>As we can see the assembler has emitted a relocation <code>R_X86_64_PC32</code> against the <code>printf</code> symbol.  The important thing to note here is that this is a <code>Program Counter relative 32-bit</code> relocation.  It means the address of the symbol <em>MUST</em> fit within a <code>32-bit</code> offset.  Put it this way, the function must be within a <code>4GB</code> offset from the current instruction.</p>
+
+<p>The final step in this process is the linker that is responsible to finding the the functions used.  This step is called <code>symbol resolution</code>. For GHCi and Template Haskell, the GHC runtime has it&rsquo;s own runtime linker.</p>
+
+<p>We don&rsquo;t need to continue beyond this point, but the <code>32-bit</code> relocation is important to note.</p>
+
+<h2 id="preferred-image-base">Preferred Image base</h2>
+
+<p>On a conceptual level, the linking model between Windows and Unix (System-V) are reasonably close, however
+implementation wise things are rather different. Windows for one doesn&rsquo;t have PIC (Position Independent Code)
+but has a concept of <code>rebasing</code>.  Essentially what this means is that when the PE file&rsquo;s preferred load address
+is already taken the file will be <code>rebased</code> to a new address.  When ASLR is enabled the image base is randomly
+chosen.</p>
+
+<p>Why is this important? Because on <code>64-bit</code> Windows the preferred load address for shared libraries created with
+a Microsoft compiler is <code>0x180000000</code>. Which means the address is larger than would fit in a <code>32-bit</code> address.</p>
+
+<p>Linking against a DLL directly can, and most often will result in the address being truncated to fit the <code>R_X86_64_PC32</code> relocation.  This is why you should never do this.  It is unfortunate, but binutils will allow you to link directly against a DLL (mostly for historical reasons.) but will emit a rather cryptic warning:</p>
+
+<pre><code>relocation truncated to fit: R_X86_64_PC32 against `&lt;symbol&gt;'
+</code></pre>
+
+<p>This warning essentially means the address it is using for the DLL is likely invalid! This will result in a segfault at runtime if you&rsquo;re lucky, at worse a random function being called.</p>
+
+<p>When the linker does warn you and you ignore it, this is what typically happens</p>
+
+<pre><code>Access violation in generated code when executing data at 000000008000fb50
+</code></pre>
+
+<p>It may not happen the first, or second time, but eventually it will due to ASLR moving around the library. As a concrete example, the official <code>PostGres</code> libraries are compiled using a Microsoft compiler. As such it&rsquo;s image base is in the low <code>64-bit</code> range.</p>
+
+<pre><code>0x000ab360: C:\Program Files\PostgreSQL\10\bin\LIBPQ.dll
+      Base   0x180000000  EntryPoint  0x180021968  Size        0x00049000    DdagNode     0x000ab4b0
+      Flags  0x000c22ec  TlsIndex    0x00000000  LoadCount   0x00000001    NodeRefCount 0x00000000
+             &lt;unknown&gt;
+             LDRP_LOAD_NOTIFICATIONS_SENT
+             LDRP_IMAGE_DLL
+             LDRP_DONT_CALL_FOR_THREADS
+             LDRP_PROCESS_ATTACH_CALLED
+</code></pre>
+
+<p>To illustrate the difference between linking directly against the DLL and against the import table let&rsquo;s look
+at this example program:</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+#include &lt;stdint.h&gt;
+
+extern void* PQgetvalue (void);
+
+int main () {
+  printf (&quot;PQgetvalue: %p&quot;, PQgetvalue);
+}
+</code></pre>
+
+<p>This program reports the address of the symbol <code>PQgetvalue</code>.
+When linking directly against the DLL the address returned is</p>
+
+<pre><code>Tamar@Rage MINGW64 /r
+$ gcc test.c -o test -lpq -L/E/Program\ Files/PostgreSQL/10/lib/
+Tamar@Rage MINGW64 /r
+$ ./test.exe
+PQgetvalue: 00000000`6440CDE0
+</code></pre>
+
+<p>The function <code>PQgetvalue</code> is actually at address <code>0x000000018000fb50</code> but has been truncated to <code>0x8000fb50</code>.
+This is why it segfaults.</p>
+
+<p>However when linking against the import library explicitly</p>
+
+<pre><code>Tamar@Rage MINGW64 /r
+$ gcc test.c -o test -llibpq -L/E/Program\ Files/PostgreSQL/10/lib/
+Tamar@Rage MINGW64 /r
+$ ./test.exe
+PQgetvalue: 00000000`004015A0
+</code></pre>
+
+<p>you get an address far inside the <code>32-bit</code> range as expected.</p>
+
+<p>GHCi is able to correctly handle function symbols when given a DLL to load.  That is, we create a <code>trampoline/indirection</code> on any symbol required from a DLL.  The <code>trampoline</code> is ensured to be created in
+the <code>4GB</code> range and will then use a <code>jmp</code> to any <code>64-bit</code> location.  If there&rsquo;s no more space in the <code>4GB</code> range
+we abort.  However <code>GHCi</code> cannot know from just the DLL what the original semantics of all the symbols in the
+<code>export</code> table of the DLL is.  It is forced to assume everything is a function.</p>
+
+<p>Import library essentially contain stubs, or direct the linker to emit stubs within the program&rsquo;s <code>.text</code> section.
+This ensures that the stub itself is within range of the <code>R_X86_64_PC32</code> relocation and that the truncation doesn&rsquo;t happen.</p>
+
+<h2 id="data-references-got">Data references (GOT)</h2>
+
+<p>Like System-V, Windows allows data to be exported from the DLL.  However, because data is accessed directly we cannot use an indirection to access the data.  The address returned for the symbol <em>must</em> be the symbol itself.</p>
+
+<p>Which means when using a relocation, it <em>must</em> point to the data directly.  The compiler knows about which symbols
+are data and which are functions, and will appropriately mark them so in the import library.</p>
+
+<p>If GHC or Binutils is given a DLL directly, they have no way to determine this information.  If this were to happen
+then you would access the redirection instead of the data value you were expecting.</p>
+
+<h2 id="library-search-order">Library Search Order</h2>
+
+<p>On all platforms, including Windows we do honor the <code>LD_LIBRARY_PATH</code> and <code>LIBRARY_PATH</code> environment variables.
+<code>LD_LIBRARY_PATH</code> will be used to look for shared dynamic libraries and <code>LIBRARY_PATH</code> for static archives and
+import libraries.  We also search the user <code>PATH</code> and <code>extra-lib-dirs</code> along with any paths given via <code>-L</code>.</p>
+
+<p>The current search order in GHCi is:</p>
+
+<pre><code class="language-ini">For non-Haskell libraries (e.g. gmp, iconv):
+first look in library-dirs for a dynamic library (on User paths only)
+(libfoo.so)
+then  try looking for import libraries on Windows (on User paths only)
+(.dll.a, .lib)
+first look in library-dirs for a dynamic library (on GCC paths only)
+(libfoo.so)
+then  check for system dynamic libraries (e.g. kernel32.dll on windows)
+then  try looking for import libraries on Windows (on GCC paths only)
+(.dll.a, .lib)
+then  look in library-dirs for a static library (libfoo.a)
+then look in library-dirs and inplace GCC for a dynamic library (libfoo.so)
+then  try looking for import libraries on Windows (.dll.a, .lib)
+then  look in library-dirs and inplace GCC for a static library (libfoo.a)
+then  try &quot;gcc --print-file-name&quot; to search gcc's search path
+    for a dynamic library (#5289)
+otherwise, assume loadDLL can find it
+
+The logic is a bit complicated, but the rationale behind it is that
+loading a shared library for us is O(1) while loading an archive is
+O(n). Loading an import library is also O(n) so in general we prefer
+shared libraries because they are simpler and faster.
+</code></pre>
+
+<p>This has been tweaked through bug reports from various different releases. For most user libraries
+we will do the right thing as long as you don&rsquo;t give it a path to your <code>DLL</code> but an import library.
+The current search directory is assuming any dll you give it only has functions.  In the future I&rsquo;d like to
+promote the searching for import libraries above shared libraries.</p>
+
+<p>For now this order is safe for the majority of cases as we do extra work to ensure loading a dll directly will
+work for the majority of cases. In the mean time before we change the order (and ignore backwards compatibility)
+you can control which one it picks using different paths for linking and running.</p>
+
+<p>To figure out where GHCi searched for libraries just pass it an extra <code>-v</code></p>
+
+<pre><code>*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;my-cool-library.lib&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;libmy-cool-library.lib&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;libmy-cool-library.dll.a&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;my-cool-library.dll.a&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;my-cool-library.dll&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;libmy-cool-library.dll&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;libmy-cool-library.a&quot;
+*** gcc:
+&quot;E:\msys64\mingw64\lib/../mingw/bin/gcc.exe&quot; &quot;-fno-stack-protector&quot; &quot;-DTABLES_NEXT_TO_CODE&quot; &quot;--print-file-name&quot; &quot;my-cool-library.a&quot;
+Loading object (dynamic) my-cool-library ... failed.
+*** Deleting temp files:
+Deleting:
+*** Deleting temp dirs:
+Deleting:
+&lt;command line&gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126))
+Whilst trying to load:  (dynamic) my-cool-library
+Additional directories searched: (none)
+</code></pre>
+
+<p>So where does the error you as the user sees comes from? When GHC&rsquo;s runtime linker cannot find the path to a
+library, it is forced to assume the library must be a DLL on the user&rsquo;s system search path. The error <code>126</code>
+comes from the Windows loader which means</p>
+
+<pre><code>ERROR_MOD_NOT_FOUND
+
+    126 (0x7E)
+
+    The specified module could not be found.
+</code></pre>
+
+<p>More at <a href="https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes--0-499-">https://docs.microsoft.com/en-us/windows/desktop/Debug/system-error-codes--0-499-</a></p>
+
+<p>Error 126 can be caused because it either can&rsquo;t find the DLL or one of it&rsquo;s transitive dependencies.
+To figure out the exact reason for the failure one can enable <code>loader snaps</code> and get debug output from
+the Windows&rsquo;s dynamic loader.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Hopefully this has shown why the GHC runtime linker is unable to find your DLL and how to do proper linking on Windows.  If there&rsquo;s anything I hope people take away from this it&rsquo;s: <em>never link directly against a dll</em> on Windows.</p>
+
+<p>Starting with <code>GHC 7.10.x</code> I have started to add import library support to <code>GHC</code>. With <code>GHC 8.x</code> this work has been
+mostly completed. The remaining issues are just internal organization issues rather than functional changes.</p>
+
+<p>This work is also the basis of getting a dynamically linked GHC to work on Windows. More on this at a later date.</p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://hub.zhox.com/images/avatar.png">
+    <div>
+        <span class="dark">Tamar Christina</span>
+        <span>GNU developer by day, GHC (and others) Windows contributor by night.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fhub.zhox.com%2fposts%2fwhy-doesnt-ghc-on-windows-find-my-dll%2f - Why%20doesn%27t%20GHCi%20on%20Windows%20find%20my%20DLL "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/chocolatey-introduction/">Haskell &amp; AppVeyor Chocolatey Introduction<aside class="dates">Jul 22 2018</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/Mistuke">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/tamarchristina">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2018 Tamar Christina
+    
+    <br />
+    <br >
+    <div class="attrib"><a href="http://www.freepik.com">Background image by klyaksun / Freepik</a></div>
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://hub.zhox.com/js/main.js"></script>
+<script src="https://hub.zhox.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-118757070-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>

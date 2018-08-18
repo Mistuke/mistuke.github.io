@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Random thought from a compiler engineer.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 22 Jul 2018 13:14:25 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 18 Aug 2018 10:11:47 +0100</lastBuildDate>
     
 	<atom:link href="https://hub.zhox.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Why doesn&#39;t GHCi on Windows find my DLL</title>
+      <link>https://hub.zhox.com/posts/why-doesnt-ghc-on-windows-find-my-dll/</link>
+      <pubDate>Sat, 18 Aug 2018 10:11:47 +0100</pubDate>
+      
+      <guid>https://hub.zhox.com/posts/why-doesnt-ghc-on-windows-find-my-dll/</guid>
+      <description>You have a new package you want to try out. You try to install the package only to be greeted with
+GHCi, version 8.2.2: http://www.haskell.org/ghc/ :? for help &amp;lt;command line&amp;gt;: user specified .o/.so/.DLL could not be loaded (addDLL: my-cool-library or dependencies not loaded. (Win32 error 126)) Whilst trying to load: (dynamic) my-cool-library Additional directories searched: (none)  by GHCi. Confused you look into your libraries folder and see my-cool-library-7.dll. Why is the file name incorrect?</description>
+    </item>
     
     <item>
       <title>Haskell &amp; AppVeyor Chocolatey Introduction</title>
