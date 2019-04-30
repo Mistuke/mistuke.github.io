@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Tamar Christina">
+<meta name="description" content="Random compiler thoughts">
+<meta name="generator" content="Hugo 0.40.2" />
+<title>Bypassing MAX_PATH Limit with GHC on Windows</title>
+<link rel="shortcut icon" href="https://hub.zhox.com/images/favicon.ico">
+<link rel="stylesheet" href="https://hub.zhox.com/css/style.css">
+<link rel="stylesheet" href="https://hub.zhox.com/css/highlight.css">
+
+<link rel="stylesheet" href="https://hub.zhox.com/css/styles.css">
+
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+
+
+
+<link href="https://hub.zhox.com/index.xml" rel="alternate" type="application/rss+xml" title="Random thought from a compiler engineer." />
+
+
+<meta property="og:title" content="Bypassing MAX_PATH Limit with GHC on Windows" />
+<meta property="og:description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
+So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
+&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/" />
+
+
+
+<meta property="article:published_time" content="2019-04-28T23:49:39&#43;01:00"/>
+
+<meta property="article:modified_time" content="2019-04-28T23:49:39&#43;01:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="Bypassing MAX_PATH Limit with GHC on Windows">
+<meta itemprop="description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
+So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
+&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.">
+
+
+<meta itemprop="datePublished" content="2019-04-28T23:49:39&#43;01:00" />
+<meta itemprop="dateModified" content="2019-04-28T23:49:39&#43;01:00" />
+<meta itemprop="wordCount" content="1124">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Bypassing MAX_PATH Limit with GHC on Windows"/>
+<meta name="twitter:description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
+So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
+&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a."/>
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://hub.zhox.com/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://hub.zhox.com/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>Bypassing MAX_PATH Limit with GHC on Windows</h1>
+        <h2 class="subtitle"></h2>
+        <h2 class="headline">
+        April 28, 2019
+        <br>
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        <p>On Windows the ancient <code>ANSI</code> APIs are generally constrained in the length of
+file paths to ~260 characters.  In the <code>Windows.h</code> header this limit is defined
+as the <code>MAX_PATH</code> constant.</p>
+
+<p>So how does this manifest itself? Usually as a <code>file not found</code> error as the
+path is silently truncated to this maximum when these APIs are called.  See for
+example how GHC <code>8.0.1</code> handles long paths:</p>
+
+<pre><code>&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.exe&quot; -fforce-recomp
+&lt;command line&gt;: error: directory portion of &quot;R:\\&lt;very long path&gt;\\a.exe&quot; does not exist (used with &quot;-o&quot; option.)
+</code></pre>
+
+<p>When Microsoft introduced the <code>Wide</code> versions of the <code>Win32</code> APIs they added the
+ability to bypass this limit (and other naming restrictions) by using an extended
+format for paths.</p>
+
+<p>Windows PATHs are categorized in <code>Namespaces</code> and the namespaces we&rsquo;re interested
+in using are the <code>Win32 device</code> and <code>Win32 file</code> namespaces.</p>
+
+<p>Paths using these namespaces start with <code>\\.\</code> and <code>\\?\</code> respectively.  These
+are the paths you see when you look at the Windows mount table (using the <code>mountvol</code> command).</p>
+
+<p>The <code>device</code> namespace is used when you require raw/direct access to a device, e.g. <code>\\.\COM1</code>,
+whereas the <code>file</code> namespace is used for normal filesystem access.  <code>UNC</code> paths
+are accessible as <code>\\?\UNC\</code>. More at <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">MSDN</a>.</p>
+
+<p>Using these namespaces bypass all API level limitations as the path is passed directly to the
+underlying filesystem driver.  This lifts the filepath length limit to about <code>32,767</code> characters.
+There is however one downside.  Since the Win32 API no longer processes the paths, having a <code>/</code> in a path is invalid along with relative paths and special components such as <code>.</code> and <code>..</code> in paths.</p>
+
+<p>Starting with GHC <code>8.6</code> I added code into GHC that wraps the usage of the deprecated POSIX
+APIs with their modern equivalent.  This allowed Haskell programs like <code>cabal</code> and <code>ghc</code> itself
+to be able to use these longer paths. The code added to GHC does some processing to ensure that any paths it gives to the filesystem is valid.  This processing is disabled if a
+namespaced path is used as an input.</p>
+
+<p>So what happens when we run GHC <code>8.6.x</code> on a long path then?</p>
+
+<pre><code>&gt; ghc .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.exe&quot; -fforce-recomp
+[1 of 1] Compiling Main             ( hello.hs, hello.o )
+Linking R:\&lt;very long path&gt;\a.exe ...
+R:\ghc-8.6.4\lib\../mingw/bin/windres.exe: can't open file `R:\&lt;very long path&gt;\a.exe.manifest': No such file or directory
+`windres.exe' failed in phase `Windres'. (Exit code: 1)
+</code></pre>
+
+<p>Still crashed, not quite what was expected&hellip;</p>
+
+<p>The problem is that while GHC now understands long paths, the underlying toolchain that we use
+does not.  More specifically GCC and Binutils do not support the long paths.</p>
+
+<p>Unfortunately patching GCC and Binutils to support these newer APIs pose both technical and
+legal challenges.  These projects do not centralize the way they open files.  While <code>libiberty</code>
+exists and is in use for some paths, most places just do <code>fopen</code> directly.</p>
+
+<p>For the longest time the tickets and frustrations of Windows users have been piling up with the
+tag <code>&quot;upstream&quot;</code>.  Others have devised workaround such as using <code>DOS 8.3</code> shortnames, however these
+have multiple issues:</p>
+
+<ul>
+<li>They&rsquo;re a performance bottleneck. You do extra writes in your <code>MFT</code> for each entry and the algorithm to find a unique shortname does a linear probe.</li>
+<li>They can be disabled, and then things won&rsquo;t work.</li>
+<li>A shortname is extra data to an existing path, which means you can&rsquo;t have a shortname to a non-existent file.</li>
+</ul>
+
+<p>So what can we do about it without changing the source? We can change the binaries!</p>
+
+<p>Essentially what we&rsquo;re going to do is replace every call to certain functions in GCC and Binutils with
+new and improved ones.  There are three ways this &ldquo;hooking&rdquo; can be done:</p>
+
+<ul>
+<li>Dynamic: The program is created suspended, the headers of the program is modified in memory and addresses for the functions we want to hook will be overridden by the new ones.</li>
+<li>Static: The header is modified directly in the file on disk.</li>
+<li>Using a local redirect: Windows has a feature where a <code>.local</code> <a href="https://docs.microsoft.com/en-us/windows/desktop/dlls/dynamic-link-library-redirection">forwarder file</a> can be used to redirect access to a DLL with one that&rsquo;s local (in a subfolder of the local file).  This won&rsquo;t work as certain system DLLs such as <code>msvcrt.dll</code> are exempt from being redirected.</li>
+</ul>
+
+<p><code>Dynamic</code> is nice as it makes no lasting changes to the binary, but it&rsquo;s also slower and requires changes to <code>GHC</code> itself. <code>Static</code> on the other hand will have no performance overhead but if the binaries are signed then the signatures would be invalidated.</p>
+
+<p>Luckily the binaries are not signed, so I went with the <code>Static</code> approach.</p>
+
+<p>Essentially the game plan is this, in every binary in the <code>mingw</code> folder of <code>ghc</code>
+we do the following:</p>
+
+<p>Find the IAT (<code>Import Address Table</code>) entry for <code>msvcrt.dll</code> (the Microsoft C runtime) and replace these with a new runtime <code>phxcrt.dll</code>.  That name was chosen as it has the same length as the original file we&rsquo;re replacing.  After the replacement is done the <code>PE header checksum</code> is re-calculated and the new values written out.</p>
+
+<p><img src="/images/import_descriptor.png" alt="IAT" title="Import Address Table" /></p>
+
+<p>The <code>phxcrt.dll</code> is a thin <code>forwarder only</code> DLL. It uses a little known feature of the Windows system loader to allow one to forward a call to another DLL. The final address is the one that the loader will write back into the <code>import descriptor</code>, so this cost is small and paid only once.  (Note that this does require strict binding of functions, but lazy binding can also be overridden but by a different mechanism.)</p>
+
+<p><code>phxcrt.dll</code> will forward the calls we don&rsquo;t care about to <code>msvcrt.dll</code> and the ones we do will be forwarded to <code>muxcrt.dll</code> (I&rsquo;ll leave the details of this to another post).</p>
+
+<p>So let&rsquo;s see it in action:</p>
+
+<pre><code>&gt; rm -rf /r/ghc-8.6.4/
+&gt; tar xJf ghc-8.6.4-x86_64-unknown-mingw32.tar.xz
+&gt; make
+gcc -O2 -DUNICODE -D__USE_MINGW_ANSI_STDIO=1 -std=c99 -municode -DWINVER=0x0601 -D_WIN32_WINNT=0x0601 fs.c iat-patcher.c -o iat-patcher.exe -ldbghelp -limagehlp
+gcc -shared phxcrt.c fs.c -o x86_64/muxcrt.dll
+gcc -shared x86_64/msvcrt.def -o x86_64/phxcrt.dll
+
+&gt; Import-Module .\Patch-GHC.psm1 -Force; Use-PatchGHC ghc &quot;iat-patcher.exe&quot; &quot;ghc-jailbreak\x86_64&quot; $true
+Done patching GHC's Mingw-w64 distribution. Good to go.
+</code></pre>
+
+<p>At this point GCC etc. should be good to go! Let&rsquo;s try out that command from before:</p>
+
+<pre><code>&gt; ghc .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.exe&quot; -fforce-recomp
+[1 of 1] Compiling Main             ( hello.hs, hello.o )
+Linking R:\&lt;very long path&gt;\a.exe ...
+
+&gt; /r/&lt;very long path&gt;/a.exe
+Hello World
+</code></pre>
+
+<p>Success! To check if as expected the redirects are cheap we inspect the API trace for <code>windres.exe</code></p>
+
+<p><img src="/images/forward.png" alt="IAT" title="Import Address Table" /></p>
+
+<p>And as expected, the <code>IAT</code> has a mix of <code>muxcrt.dll</code> and <code>msvcrt.dll</code> but no <code>phxcrt.dll</code> apart from the initialization calls.</p>
+
+<p>The patcher is currently available for wide testing and can be installed through <code>chocolatey</code>:</p>
+
+<pre><code>choco install ghc-jailbreak
+</code></pre>
+
+<p>and you&rsquo;re good to go! To undo the patching just uninstall the patcher using</p>
+
+<pre><code>choco uninstall ghc-jailbreak
+</code></pre>
+
+<p>This will undo the changes to all the binaries.</p>
+
+<p>For the full source visit the project <a href="https://github.com/Mistuke/Ghc-jailbreak">GitHub</a>.</p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://hub.zhox.com/images/avatar.png">
+    <div>
+        <span class="dark">Tamar Christina</span>
+        <span>GNU developer by day, GHC (and others) Windows contributor by night.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fhub.zhox.com%2fposts%2fbypassing-max_path-limit-on-windows%2f - Bypassing%20MAX_PATH%20Limit%20with%20GHC%20on%20Windows "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/why-doesnt-ghc-on-windows-find-my-dll/">Why doesn&#39;t GHCi on Windows find my DLL<aside class="dates">Aug 18 2018</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/chocolatey-introduction/">Haskell &amp; AppVeyor Chocolatey Introduction<aside class="dates">Jul 22 2018</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/Mistuke">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/tamarchristina">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2019 Tamar Christina
+    
+    <br />
+    <br >
+    <div class="attrib"><a href="http://www.freepik.com">Background image by klyaksun / Freepik</a></div>
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://hub.zhox.com/js/main.js"></script>
+<script src="https://hub.zhox.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-118757070-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>
