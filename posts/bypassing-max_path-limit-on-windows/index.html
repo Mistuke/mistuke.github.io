@@ -167,10 +167,10 @@ exists and is in use for some paths, most places just do <code>fopen</code> dire
 tag <code>&quot;upstream&quot;</code>.  Others have devised workaround such as using <code>DOS 8.3</code> shortnames, however these
 have multiple issues:</p>
 
-<ul>
-<li>They&rsquo;re a performance bottleneck. You do extra writes in your <code>MFT</code> for each entry and the algorithm to find a unique shortname does a linear probe.</li>
-<li>They can be disabled, and then things won&rsquo;t work.</li>
-<li>A shortname is extra data to an existing path, which means you can&rsquo;t have a shortname to a non-existent file.</li>
+<ul class="list">
+<li> They're a performance bottleneck. You do extra writes in your <code>MFT</code> for each entry and the algorithm to find a unique shortname does a linear probe.</li>
+<li> They can be disabled, and then things won't work.</li>
+<li> A shortname is extra data to an existing path, which means you can't have a shortname to a non-existent file.</li>
 </ul>
 
 <p>So what can we do about it without changing the source? We can change the binaries!</p>
@@ -178,10 +178,10 @@ have multiple issues:</p>
 <p>Essentially what we&rsquo;re going to do is replace every call to certain functions in GCC and Binutils with
 new and improved ones.  There are three ways this &ldquo;hooking&rdquo; can be done:</p>
 
-<ul>
-<li><code>Dynamic</code>: The program is created suspended, the headers of the program is modified in memory and addresses for the functions we want to hook will be overridden by the new ones.</li>
-<li><code>Static</code>: The header is modified directly in the file on disk.</li>
-<li><code>Local redirect</code>: Windows has a feature where a <code>.local</code> <a href="https://docs.microsoft.com/en-us/windows/desktop/dlls/dynamic-link-library-redirection">forwarder file</a> can be used to redirect access to a DLL with one that&rsquo;s local (in a subfolder of the local file).  This won&rsquo;t work as certain system DLLs such as <code>msvcrt.dll</code> are exempt from being redirected.</li>
+<ul class="list">
+<li> <code>Dynamic</code>: The program is created suspended, the headers of the program is modified in memory and addresses for the functions we want to hook will be overridden by the new ones.</li>
+<li> <code>Static</code>: The header is modified directly in the file on disk.</li>
+<li> <code>Local redirect</code>: Windows has a feature where a <code>.local</code> <a href="https://docs.microsoft.com/en-us/windows/desktop/dlls/dynamic-link-library-redirection">forwarder file</a> can be used to redirect access to a DLL with one that's local (in a subfolder of the local file).  This won't work as certain system DLLs such as <code>msvcrt.dll</code> are exempt from being redirected.</li>
 </ul>
 
 <p><code>Dynamic</code> is nice as it makes no lasting changes to the binary, but it&rsquo;s also slower and requires changes to <code>GHC</code> itself. <code>Static</code> on the other hand will have no performance overhead but if the binaries are signed then the signatures would be invalidated.</p>
