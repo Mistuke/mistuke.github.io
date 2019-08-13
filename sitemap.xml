@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</loc>
+    <lastmod>2019-04-28T23:49:39+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://hub.zhox.com/posts/why-doesnt-ghc-on-windows-find-my-dll/</loc>
     <lastmod>2018-08-18T10:11:47+01:00</lastmod>
   </url>

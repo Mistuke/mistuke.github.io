@@ -15,6 +15,8 @@
 <link rel="stylesheet" href="https://hub.zhox.com/css/styles.css">
 
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.003/web/hack.css" integrity="sha256-nZuLDiukZ8m5pnOiJdxK1IjXsQ2qbZB1R6x0ddFRyog=" crossorigin="anonymous" />
+
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
 
@@ -24,9 +26,8 @@
 
 
 <meta property="og:title" content="Bypassing MAX_PATH Limit with GHC on Windows" />
-<meta property="og:description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
-So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
-&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a." />
+<meta property="og:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
+ NOTE: I know that some people will consider this a hack, and while it is a hack it is one born out of frustration and 10&#43; years of upstream projects GHC depends on not doing anything about it." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/" />
 
@@ -49,14 +50,13 @@ So how does this manifest itself? Usually as a file not found error as the path 
 
 
 <meta itemprop="name" content="Bypassing MAX_PATH Limit with GHC on Windows">
-<meta itemprop="description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
-So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
-&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.">
+<meta itemprop="description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
+ NOTE: I know that some people will consider this a hack, and while it is a hack it is one born out of frustration and 10&#43; years of upstream projects GHC depends on not doing anything about it.">
 
 
 <meta itemprop="datePublished" content="2019-04-28T23:49:39&#43;01:00" />
 <meta itemprop="dateModified" content="2019-04-28T23:49:39&#43;01:00" />
-<meta itemprop="wordCount" content="1124">
+<meta itemprop="wordCount" content="1238">
 
 
 
@@ -64,9 +64,8 @@ So how does this manifest itself? Usually as a file not found error as the path 
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Bypassing MAX_PATH Limit with GHC on Windows"/>
-<meta name="twitter:description" content="On Windows the ancient ANSI APIs are generally constrained in the length of file paths to ~260 characters. In the Windows.h header this limit is defined as the MAX_PATH constant.
-So how does this manifest itself? Usually as a file not found error as the path is silently truncated to this maximum when these APIs are called. See for example how GHC 8.0.1 handles long paths:
-&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a."/>
+<meta name="twitter:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
+ NOTE: I know that some people will consider this a hack, and while it is a hack it is one born out of frustration and 10&#43; years of upstream projects GHC depends on not doing anything about it."/>
 
 
     </head>
@@ -97,13 +96,27 @@ So how does this manifest itself? Usually as a file not found error as the path 
         </h2>
     </header>
     <section id="post-body">
-        <p>On Windows the ancient <code>ANSI</code> APIs are generally constrained in the length of
-file paths to ~260 characters.  In the <code>Windows.h</code> header this limit is defined
+        <blockquote>
+<p><em>TL;DR:</em> <code>GHC 8.10+</code> Will ship with a custom <code>GCC+Binutils</code> bindist that will remove the
+<code>MAX_PATH</code> limitation to files.  The GHC binaries themselves must still be in
+installed in a path shorter than <code>MAX_PATH</code>.  <code>GHC 8.6</code> and <code>GHC 8.8</code> are also
+supported if installed via chocolatey by installing the extension ghc-jailbreak.</p>
+</blockquote>
+
+<pre class="light">
+NOTE: I know that some people will consider this a hack, and while it is a hack it is
+one born out of frustration and 10+ years of upstream projects GHC depends on
+not doing anything about it.  If you are one of those people you can stop
+reading now as I promise you won't be happier by the end.
+</pre>
+
+<p>On Windows the ancient <code>ANSI</code> APIs are generally constrained in the length of
+file paths to <strong>~260</strong> characters.  In the <code>Windows.h</code> header this limit is defined
 as the <code>MAX_PATH</code> constant.</p>
 
 <p>So how does this manifest itself? Usually as a <code>file not found</code> error as the
 path is silently truncated to this maximum when these APIs are called.  See for
-example how GHC <code>8.0.1</code> handles long paths:</p>
+example how <code>GHC 8.0.1</code> handles long paths:</p>
 
 <pre><code>&gt; C:\ghc\ghc-8.0.1\bin\ghc.exe .\hello.hs -o &quot;R:\&lt;very long path&gt;\a.exe&quot; -fforce-recomp
 &lt;command line&gt;: error: directory portion of &quot;R:\\&lt;very long path&gt;\\a.exe&quot; does not exist (used with &quot;-o&quot; option.)
@@ -120,8 +133,8 @@ in using are the <code>Win32 device</code> and <code>Win32 file</code> namespace
 are the paths you see when you look at the Windows mount table (using the <code>mountvol</code> command).</p>
 
 <p>The <code>device</code> namespace is used when you require raw/direct access to a device, e.g. <code>\\.\COM1</code>,
-whereas the <code>file</code> namespace is used for normal filesystem access.  <code>UNC</code> paths
-are accessible as <code>\\?\UNC\</code>. More at <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">MSDN</a>.</p>
+whereas the <code>file</code> namespace is used for normal filesystem access.  <code>UNC</code> (Uniform Naming Convention,
+also known as network location) paths are accessible as <code>\\?\UNC\</code>. More at <a href="https://docs.microsoft.com/en-us/windows/desktop/FileIO/naming-a-file#fully-qualified-vs-relative-paths">MSDN</a>.</p>
 
 <p>Using these namespaces bypass all API level limitations as the path is passed directly to the
 underlying filesystem driver.  This lifts the filepath length limit to about <code>32,767</code> characters.
@@ -166,23 +179,23 @@ have multiple issues:</p>
 new and improved ones.  There are three ways this &ldquo;hooking&rdquo; can be done:</p>
 
 <ul>
-<li>Dynamic: The program is created suspended, the headers of the program is modified in memory and addresses for the functions we want to hook will be overridden by the new ones.</li>
-<li>Static: The header is modified directly in the file on disk.</li>
-<li>Using a local redirect: Windows has a feature where a <code>.local</code> <a href="https://docs.microsoft.com/en-us/windows/desktop/dlls/dynamic-link-library-redirection">forwarder file</a> can be used to redirect access to a DLL with one that&rsquo;s local (in a subfolder of the local file).  This won&rsquo;t work as certain system DLLs such as <code>msvcrt.dll</code> are exempt from being redirected.</li>
+<li><code>Dynamic</code>: The program is created suspended, the headers of the program is modified in memory and addresses for the functions we want to hook will be overridden by the new ones.</li>
+<li><code>Static</code>: The header is modified directly in the file on disk.</li>
+<li><code>Local redirect</code>: Windows has a feature where a <code>.local</code> <a href="https://docs.microsoft.com/en-us/windows/desktop/dlls/dynamic-link-library-redirection">forwarder file</a> can be used to redirect access to a DLL with one that&rsquo;s local (in a subfolder of the local file).  This won&rsquo;t work as certain system DLLs such as <code>msvcrt.dll</code> are exempt from being redirected.</li>
 </ul>
 
 <p><code>Dynamic</code> is nice as it makes no lasting changes to the binary, but it&rsquo;s also slower and requires changes to <code>GHC</code> itself. <code>Static</code> on the other hand will have no performance overhead but if the binaries are signed then the signatures would be invalidated.</p>
 
 <p>Luckily the binaries are not signed, so I went with the <code>Static</code> approach.</p>
 
-<p>Essentially the game plan is this, in every binary in the <code>mingw</code> folder of <code>ghc</code>
+<p>Essentially the game plan is in every binary in the <code>mingw</code> folder of <code>ghc</code>
 we do the following:</p>
 
 <p>Find the IAT (<code>Import Address Table</code>) entry for <code>msvcrt.dll</code> (the Microsoft C runtime) and replace these with a new runtime <code>phxcrt.dll</code>.  That name was chosen as it has the same length as the original file we&rsquo;re replacing.  After the replacement is done the <code>PE header checksum</code> is re-calculated and the new values written out.</p>
 
 <p><img src="/images/import_descriptor.png" alt="IAT" title="Import Address Table" /></p>
 
-<p>The <code>phxcrt.dll</code> is a thin <code>forwarder only</code> DLL. It uses a little known feature of the Windows system loader to allow one to forward a call to another DLL. The final address is the one that the loader will write back into the <code>import descriptor</code>, so this cost is small and paid only once.  (Note that this does require strict binding of functions, but lazy binding can also be overridden but by a different mechanism.)</p>
+<p>The <code>phxcrt.dll</code> is a thin <code>forwarder only</code> DLL. It uses a little known feature of the Windows system loader to allow one to forward a call to another DLL. The final address is the one that the loader will write back into the <code>import descriptor</code>, so this cost is small and paid only once.  (Note that this does require strict binding of functions. Lazy binding can also be overridden but by a different mechanism.)</p>
 
 <p><code>phxcrt.dll</code> will forward the calls we don&rsquo;t care about to <code>msvcrt.dll</code> and the ones we do will be forwarded to <code>muxcrt.dll</code> (I&rsquo;ll leave the details of this to another post).</p>
 
