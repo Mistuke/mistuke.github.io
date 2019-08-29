@@ -12,6 +12,16 @@
     
     
     <item>
+      <title>Bypassing MAX_PATH Limit with GHC on Windows</title>
+      <link>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</link>
+      <pubDate>Sun, 28 Apr 2019 23:49:39 +0100</pubDate>
+      
+      <guid>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</guid>
+      <description>TL;DR: GHC 8.10+ Will ship with a custom GCC+Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
+ NOTE: I know that some people will consider this a hack, and while it is a hack it is the best solution that works on older platforms as well.</description>
+    </item>
+    
+    <item>
       <title>Why doesn&#39;t GHCi on Windows find my DLL</title>
       <link>https://hub.zhox.com/posts/why-doesnt-ghc-on-windows-find-my-dll/</link>
       <pubDate>Sat, 18 Aug 2018 10:11:47 +0100</pubDate>
