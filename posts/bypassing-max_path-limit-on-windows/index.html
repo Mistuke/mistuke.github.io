@@ -26,8 +26,7 @@
 
 
 <meta property="og:title" content="Bypassing MAX_PATH Limit with GHC on Windows" />
-<meta property="og:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
- NOTE: I know that some people will consider this a hack, and while it is a hack it is the best solution that works on older platforms as well." />
+<meta property="og:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak. For cabal to work correctly you need a cabal compiled with GHC 8.6&#43;, on chocolatey this means cabal 2." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/" />
 
@@ -50,13 +49,12 @@
 
 
 <meta itemprop="name" content="Bypassing MAX_PATH Limit with GHC on Windows">
-<meta itemprop="description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
- NOTE: I know that some people will consider this a hack, and while it is a hack it is the best solution that works on older platforms as well.">
+<meta itemprop="description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak. For cabal to work correctly you need a cabal compiled with GHC 8.6&#43;, on chocolatey this means cabal 2.">
 
 
 <meta itemprop="datePublished" content="2019-04-28T23:49:39&#43;01:00" />
 <meta itemprop="dateModified" content="2019-04-28T23:49:39&#43;01:00" />
-<meta itemprop="wordCount" content="1265">
+<meta itemprop="wordCount" content="1338">
 
 
 
@@ -64,8 +62,7 @@
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Bypassing MAX_PATH Limit with GHC on Windows"/>
-<meta name="twitter:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
- NOTE: I know that some people will consider this a hack, and while it is a hack it is the best solution that works on older platforms as well."/>
+<meta name="twitter:description" content="TL;DR: GHC 8.10&#43; Will ship with a custom GCC&#43;Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak. For cabal to work correctly you need a cabal compiled with GHC 8.6&#43;, on chocolatey this means cabal 2."/>
 
 
     </head>
@@ -102,12 +99,17 @@
 <p><em>TL;DR:</em> <code>GHC 8.10+</code> Will ship with a custom <code>GCC+Binutils</code> bindist that will remove the
 <code>MAX_PATH</code> limitation to files.  The GHC binaries themselves must still be in
 installed in a path shorter than <code>MAX_PATH</code>.  <code>GHC 8.6</code> and <code>GHC 8.8</code> are also
-supported if installed via chocolatey by installing the extension ghc-jailbreak.</p>
+supported if installed via chocolatey by installing the extension ghc-jailbreak.
+For cabal to work correctly you need a cabal compiled with GHC 8.6+, on
+chocolatey this means cabal 2.4+.</p>
 </blockquote>
 
 <pre class="light">
 NOTE: I know that some people will consider this a hack, and while it is a hack it is
-the best solution that works on older platforms as well.
+the best solution that works on older platforms as well. For the Linux users
+reading this, while Windows does have an `LD_PRELOAD` equivalent system DLLs are
+exempt from this. On ELF platforms the approach taken here is equivalent to
+patching `DT_NEEDED` entries.
 </pre>
 
 <h2 id="introduction">Introduction</h2>
@@ -254,7 +256,11 @@ the patch CmdLets to patch multiple GHC installs.</p>
 
 <p>This will undo the changes to all the binaries.</p>
 
-<p>For the full source visit the project <a href="https://github.com/Mistuke/Ghc-jailbreak">GitHub</a>.</p>
+<p>For the full source visit the project <a href="https://github.com/Mistuke/Ghc-jailbreak">GitHub</a>.
+Please give it a try, and if you encounter any problems open a ticket so I can
+fix these up.</p>
+
+<p>&ndash; Tamar</p>
 
     </section>
 </article>
@@ -295,6 +301,10 @@ the patch CmdLets to patch multiple GHC installs.</p>
     
         <li>
             <a href="/posts/chocolatey-introduction/">Haskell &amp; AppVeyor Chocolatey Introduction<aside class="dates">Jul 22 2018</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/introducing-haskell-dev/">The easiest way to setup a Haskell environment on Windows<aside class="dates">Jul 22 2018</aside></a>
         </li>
     
 </ul>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en-us">
+	<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Tamar Christina">
+<meta name="description" content="Random compiler thoughts">
+<meta name="generator" content="Hugo 0.40.2" />
+<title>The easiest way to setup a Haskell environment on Windows</title>
+<link rel="shortcut icon" href="https://hub.zhox.com/images/favicon.ico">
+<link rel="stylesheet" href="https://hub.zhox.com/css/style.css">
+<link rel="stylesheet" href="https://hub.zhox.com/css/highlight.css">
+
+<link rel="stylesheet" href="https://hub.zhox.com/css/styles.css">
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/hack-font/3.003/web/hack.css" integrity="sha256-nZuLDiukZ8m5pnOiJdxK1IjXsQ2qbZB1R6x0ddFRyog=" crossorigin="anonymous" />
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+
+
+
+<link href="https://hub.zhox.com/index.xml" rel="alternate" type="application/rss+xml" title="Random thought from a compiler engineer." />
+
+
+<meta property="og:title" content="The easiest way to setup a Haskell environment on Windows" />
+<meta property="og:description" content="What is chocolatey Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/. Chocolatey&rsquo;s populary is quickly growing.
+Chocolatey is supported out of the box in all major cloud CI services including AppVeyor, CircleCI, Travis CI and Azure Pipelines. It&rsquo;s also supported by full system building software such as BoxStarter that are used by companies to provision new machines and also supported by system management software such as Puppet and Ansible." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://hub.zhox.com/posts/introducing-haskell-dev/" />
+
+
+
+<meta property="article:published_time" content="2018-07-22T13:14:25&#43;01:00"/>
+
+<meta property="article:modified_time" content="2018-07-22T13:14:25&#43;01:00"/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta itemprop="name" content="The easiest way to setup a Haskell environment on Windows">
+<meta itemprop="description" content="What is chocolatey Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/. Chocolatey&rsquo;s populary is quickly growing.
+Chocolatey is supported out of the box in all major cloud CI services including AppVeyor, CircleCI, Travis CI and Azure Pipelines. It&rsquo;s also supported by full system building software such as BoxStarter that are used by companies to provision new machines and also supported by system management software such as Puppet and Ansible.">
+
+
+<meta itemprop="datePublished" content="2018-07-22T13:14:25&#43;01:00" />
+<meta itemprop="dateModified" content="2018-07-22T13:14:25&#43;01:00" />
+<meta itemprop="wordCount" content="1258">
+
+
+
+<meta itemprop="keywords" content="" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="The easiest way to setup a Haskell environment on Windows"/>
+<meta name="twitter:description" content="What is chocolatey Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey https://chocolatey.org/. Chocolatey&rsquo;s populary is quickly growing.
+Chocolatey is supported out of the box in all major cloud CI services including AppVeyor, CircleCI, Travis CI and Azure Pipelines. It&rsquo;s also supported by full system building software such as BoxStarter that are used by companies to provision new machines and also supported by system management software such as Puppet and Ansible."/>
+
+
+    </head>
+<body>
+    <nav class="main-nav">
+	
+		<a href='https://hub.zhox.com/'> <span class="arrow">←</span>Home</a>
+	
+
+	
+
+	
+		<a class="cta" href="https://hub.zhox.com/index.xml">Subscribe</a>
+	
+</nav>
+
+    <section id="wrapper">
+        
+        
+<article class="post">
+    <header>
+        <h1>The easiest way to setup a Haskell environment on Windows</h1>
+        <h2 class="subtitle"></h2>
+        <h2 class="headline">
+        July 22, 2018
+        <br>
+        
+        </h2>
+    </header>
+    <section id="post-body">
+        
+
+<h2 id="what-is-chocolatey">What is chocolatey</h2>
+
+<p>Windows has had quite a push lately to provide script-able ways to install
+packages. One such attempt that has gained quite a lot of traction is
+<code>Chocolatey</code> <a href="https://chocolatey.org/">https://chocolatey.org/</a>. Chocolatey&rsquo;s populary is quickly growing.</p>
+
+<p>Chocolatey is supported out of the box in all major cloud CI services including
+<code>AppVeyor</code>, <code>CircleCI</code>, <code>Travis CI</code> and <code>Azure Pipelines</code>.  It&rsquo;s also supported
+by full system building software such as <code>BoxStarter</code> that are used by companies
+to provision new machines and also supported by system management software such
+as <code>Puppet</code> and <code>Ansible</code>.</p>
+
+<p>The reason for this is that <code>Chocolatey</code> is not only easy to use, but safe and
+secure. Every package is initially hand verified through moderation until the
+package becomes trusted.  Packages are always passed through automated verification
+and packages are downloaded and uploaded through https.  The package metadata
+itself is verified after downloaded which checks that the package wasn&rsquo;t
+tampered with during download.  Furthermore any files downloaded (such as <code>cabal</code>
+or <code>ghc</code>) have to have a <code>sha256</code> checksum provided for them which will be
+verified.  If you don&rsquo;t trust the signatures you can provide your own that it
+uses to check against.  Once uploaded every binary the package installs is ran
+through a host of virus checkers and the results publicly posted.</p>
+
+<p>Read more on <a href="https://chocolatey.org/security">Chocolatey security</a> here and see
+for yourself why it&rsquo;s trusted by so many companies.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p><code>Chocolatey</code> contains some of my own packages for installing <code>GHC</code> and <code>cabal</code></p>
+
+<p>The <code>GHC</code> package <a href="https://chocolatey.org/packages/ghc">https://chocolatey.org/packages/ghc</a> goes all the way back to <code>GHC 6.10.1</code>
+and the <code>cabal-install</code> package <a href="https://chocolatey.org/packages/cabal">https://chocolatey.org/packages/cabal</a> to <code>cabal-install 0.6.0</code>.</p>
+
+<p>These are quite handy for those who use the <code>cabal+ghc</code> workflow like myself and like to switch
+compiler versions easy, or script environment setups.</p>
+
+<p>After installing <a href="https://chocolatey.org/install#installing-chocolatey">Chocolatey</a>
+ one can install <code>GHC</code> simply using the command</p>
+
+<pre><code>choco install ghc cabal
+refreshenv
+</code></pre>
+
+<pre class="light">
+NOTE: For a longer introduction see <a style="color: #000" href="https://hub.zhox.com/posts/chocolatey-introduction/">Introduction to Chocolatey</a>.
+</pre>
+
+<p>For the longest time the complaint here was that these packages do not install <code>msys2</code> and so are unsuitable to fully
+replace the <code>Haskell Platform</code>.</p>
+
+<p>With the release of <code>Cabal 3.0.0.0</code> this is no longer the case.</p>
+
+<h2 id="what-s-new-in-the-chocolatey-packages">What&rsquo;s new in the chocolatey packages</h2>
+
+<p>There are a couple of new things in both the <code>Cabal 3.0.0.0</code> and <code>GHC 8.8.1</code> packages</p>
+
+<pre class="light">
+NOTE: At the time of writing the GHC 8.8.1 package has not been published yet due to there being no 32-bit build for GHC 8.8.1 available.
+Publishing the package without it would block 32-bit users from using the unversioned package head (i.e. from being able to install the latest GHC without needing to give an explicit version).
+</pre>
+
+<h3 id="cabal-3-0">Cabal 3.0+</h3>
+
+<p>The <code>cabal</code> package on chocolatey will now automatically detect the presence of
+<code>msys2</code> on the system and configure it to work with <code>cabal</code> seamlessly.  It also
+configures some default <code>cabal</code> options such that <code>cabal</code> works fully out of the
+box on <code>Windows</code>.  This means that packages such as <code>network</code> or <code>threadscope</code>
+will install without problem from <em>ANY</em> shell, including <code>cmd</code> and <code>powershell</code>.</p>
+
+<p>A second change is that the package will detect the presence of it being installed
+on <code>AppVeyor</code> and will configure the <code>cabal</code> such that it works without any issue
+there using the <code>AppVeyor</code> provided <code>msys2</code>.</p>
+
+<p>Since this functionality is provided by the <code>cabal 3.0+</code> package, you can use any
+<code>GHC</code> version (or even multiple by using the choco flag <code>-m</code> when installing <code>GHC</code>)
+and it will just work.</p>
+
+<p>Because of this change <code>AppVeyor</code> scripts can be much simpler.  As an example the
+<code>Win32</code> script looks like this now</p>
+
+<pre><code>clone_folder: &quot;c:\\WORK&quot;
+clone_depth: 5
+
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
+platform:
+  - x86_64
+  - x86
+
+environment:
+  global:
+    CABOPTS:  --http-transport=plain-http
+    CHOCOCMD: ghc --version %GHCVER%
+  matrix:
+    - GHCVER: 8.6.2
+    - GHCVER: 8.4.2
+    - GHCVER: 8.2.2
+    - GHCVER: 8.0.2
+    - GHCVER: 7.10.3.2
+    - GHCVER: 7.8.4.1
+    - GHCVER: 7.6.3.1
+
+for:
+  -
+    matrix:
+      only:
+        - platform: x86
+    environment:
+      global:
+        GHCOPTS: --forcex86
+
+install:
+ - choco source add -n mistuke -s https://www.myget.org/F/mistuke/api/v2
+ - choco install %CHOCOCMD% -y %GHCOPTS% %CHOCOPTS% --ignore-dependencies
+ - choco install -y cabal %CHOCOPTS%
+ - refreshenv
+
+before_build:
+ - cabal --version
+ - ghc --version
+ - cabal %CABOPTS% v2-update
+ - IF EXIST configure.ac bash -c &quot;autoreconf -i&quot;
+
+build_script:
+ - echo packages:. &gt; cabal.project
+ - cabal %CABOPTS% v2-build -j all
+</code></pre>
+
+<p>This script should work for <code>99%</code> of all packages.</p>
+
+<p>The last thing the cabal package now provides is a new command <code>mingw64-pkg</code>.
+One of the common mistakes people make is installing the <code>wrong</code> package from msys2
+causing ghc(i) to not be able to find or load the package.</p>
+
+<p><code>mingw64-pkg</code> is a script that can be called from any shell to download the right packages
+into <code>msys2</code> such that <code>GHC</code> and <code>cabal</code> will find them without hassle.</p>
+
+<pre><code>mingw64-pkg install pkg-config
+mingw64-pkg install gtk2
+</code></pre>
+
+<p>Will give you a fully working and configured <code>gtk2</code> and <code>pkg-config</code>.   This
+script also provides additional functionality documented on the <a href="https://chocolatey.org/packages/cabal">cabal chocolatey</a> page.</p>
+
+<h3 id="ghc-8-8">GHC 8.8+</h3>
+
+<p>The <code>GHC 8.8+</code> packages will automatically detect <code>Travis CI</code> as well, however
+due to the way <code>Travis CI</code> is setup, calling the default <code>refreshenv</code> will have
+no effect since travis doesn&rsquo;t use a Windows shell by default and instead uses
+a unix shell such as <code>bash</code>.</p>
+
+<p>The <code>GHC 8.8+</code> packages will register a <code>bash</code> alias <code>refreshenv</code> such which will
+re-export your environment variables such that they pick up new <code>GHC</code> installs.</p>
+
+<p><code>Travis CI</code> does not install <code>msys2</code> automatically like <code>AppVeyor</code>, as such we have to
+install it manually. On travis</p>
+
+<pre><code>choco install ghc cabal msys2
+refreshenv
+</code></pre>
+
+<p>gets you all you need.</p>
+
+<h3 id="haskell-dev">Haskell-dev</h3>
+
+<p>In order to make this easier for beginners chocolatey has a new package called
+<a href="https://chocolatey.org/packages/haskell-dev">Haskell-Dev</a>.</p>
+
+<p>Haskell-Dev is a full replacement for the minimal Haskell-Platform with no additional
+configuration needed. It will set up a 100% working Haskell environment using a single
+chocolatey command:</p>
+
+<pre><code>choco install haskell-dev
+</code></pre>
+
+<p>The benefits of using this package are that you can afterwards still manage each
+individual component (such as upgrading <code>ghc</code> alone) or upgrade everything as a
+whole.</p>
+
+<pre class="light">
+NOTE: Don't use this package for AppVeyor, you will needlessly duplicate work as it
+already provides `msys2`. Please install the `cabal` and `ghc` packages directly.
+</pre>
+
+<pre><code>choco upgrade haskell-dev
+</code></pre>
+
+<p>Will always get you the most up-to-date version of everything.  Speaking of updates
+one of the major advantages of using chocolatey to install <code>msys2</code> is the fact that
+it does not use a stale tarball for <code>msys2</code>. During the installation a full <code>msys2</code>
+system update is done. Giving you the latest working version of <code>msys2</code>.  This is
+very important for security and compatibility issues.  Having an too out of date <code>msys2</code>
+install will also prohibit you from installing newer versions of packages and if it gets
+too out of date <code>pacman</code> may no longer have the right <code>pgp</code> keys to work.</p>
+
+<p>But what about setting up an <code>IDE</code>? I have a package that I am still putting together and testing.
+The package will install all of the above but on top of this install <code>vscode</code> and pre-built <code>hie</code> binaries
+and automatically configure the extensions to work together out of the box.</p>
+
+<p>This will be available soon.</p>
+
+<pre class="light">
+NOTE: I don't particularly use anything in an IDE aside from syntax highlighting so I may not
+be fully in tune with the needs of people who do.  As such I am looking for two things:
+
+- What do people want the IDE package to do/come with out of the box.
+- I am looking for co-maintainers, as mentioned I won't be using this much myself so I'd like people who have slightly more skin in the game to help shape this.  The only hard requirement is that this *has* to stay `cabal` centric.
+</pre>
+
+<p>&ndash; Tamar</p>
+
+    </section>
+</article>
+
+<footer id="post-meta" class="clearfix">
+    
+    <img class="avatar" src="https://hub.zhox.com/images/avatar.png">
+    <div>
+        <span class="dark">Tamar Christina</span>
+        <span>GNU developer by day, GHC (and others) Windows contributor by night.</span>
+    </div>
+    
+    <section id="sharing">
+        <a class="twitter" href="https://twitter.com/intent/tweet?text=https%3a%2f%2fhub.zhox.com%2fposts%2fintroducing-haskell-dev%2f - The%20easiest%20way%20to%20setup%20a%20Haskell%20environment%20on%20Windows "><span class="icon-twitter"> tweet</span></a>
+
+<a class="facebook" href="#" onclick="
+    window.open(
+      'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+      'facebook-share-dialog',
+      'width=626,height=436');
+    return false;"><span class="icon-facebook-rect"> Share</span>
+</a>
+
+    </section>
+</footer>
+
+
+
+<ul id="post-list" class="archive readmore">
+    <h3>Read more</h3>
+
+    
+    
+    
+        <li>
+            <a href="/posts/bypassing-max_path-limit-on-windows/">Bypassing MAX_PATH Limit with GHC on Windows<aside class="dates">Apr 28 2019</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/why-doesnt-ghc-on-windows-find-my-dll/">Why doesn&#39;t GHCi on Windows find my DLL<aside class="dates">Aug 18 2018</aside></a>
+        </li>
+    
+        <li>
+            <a href="/posts/chocolatey-introduction/">Haskell &amp; AppVeyor Chocolatey Introduction<aside class="dates">Jul 22 2018</aside></a>
+        </li>
+    
+</ul>
+
+
+
+        <footer id="footer">
+    
+        <div id="social">
+
+	
+	
+    <a class="symbol" href="https://www.github.com/Mistuke">
+        <i class="fa fa-github"></i>
+    </a>
+    
+    <a class="symbol" href="https://www.linkedin.com/in/tamarchristina">
+        <i class="fa fa-linkedin"></i>
+    </a>
+    
+
+
+</div>
+
+    
+    <p class="small">
+    
+        © Copyright 2019 Tamar Christina
+    
+    <br />
+    <br >
+    <div class="attrib"><a href="http://www.freepik.com">Background image by klyaksun / Freepik</a></div>
+    </p>
+</footer>
+
+    </section>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://hub.zhox.com/js/main.js"></script>
+<script src="https://hub.zhox.com/js/highlight.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-118757070-1', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+</body>
+</html>
