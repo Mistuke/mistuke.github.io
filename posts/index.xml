@@ -6,7 +6,7 @@
     <description>Recent content in Posts on Random thought from a compiler engineer.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 28 Apr 2019 23:49:39 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 28 Aug 2019 23:49:39 +0100</lastBuildDate>
     
 	<atom:link href="https://hub.zhox.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,11 +14,10 @@
     <item>
       <title>Bypassing MAX_PATH Limit with GHC on Windows</title>
       <link>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</link>
-      <pubDate>Sun, 28 Apr 2019 23:49:39 +0100</pubDate>
+      <pubDate>Wed, 28 Aug 2019 23:49:39 +0100</pubDate>
       
       <guid>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</guid>
-      <description>TL;DR: GHC 8.10+ Will ship with a custom GCC+Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak.
- NOTE: I know that some people will consider this a hack, and while it is a hack it is the best solution that works on older platforms as well.</description>
+      <description>TL;DR: GHC 8.10+ Will ship with a custom GCC+Binutils bindist that will remove the MAX_PATH limitation to files. The GHC binaries themselves must still be in installed in a path shorter than MAX_PATH. GHC 8.6 and GHC 8.8 are also supported if installed via chocolatey by installing the extension ghc-jailbreak. For cabal to work correctly you need a cabal compiled with GHC 8.6+, on chocolatey this means cabal 2.</description>
     </item>
     
     <item>
