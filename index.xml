@@ -6,10 +6,20 @@
     <description>Recent content on Random thought from a compiler engineer.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 28 Aug 2019 23:49:39 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 30 Aug 2019 07:14:25 +0100</lastBuildDate>
     
 	<atom:link href="https://hub.zhox.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>The easiest way to setup a Haskell environment on Windows</title>
+      <link>https://hub.zhox.com/posts/introducing-haskell-dev/</link>
+      <pubDate>Fri, 30 Aug 2019 07:14:25 +0100</pubDate>
+      
+      <guid>https://hub.zhox.com/posts/introducing-haskell-dev/</guid>
+      <description>What is chocolatey Windows has had quite a push lately to provide script-able ways to install packages. One such attempt that has gained quite a lot of traction is Chocolatey (https://chocolatey.org/). Chocolatey&amp;rsquo;s populary is quickly growing.
+Chocolatey is supported out of the box in all major cloud CI services including AppVeyor, CircleCI, Travis CI and Azure Pipelines. It&amp;rsquo;s also supported by full system building software such as BoxStarter that are used by companies to provision new machines and also supported by system management software such as Puppet and Ansible.</description>
+    </item>
     
     <item>
       <title>Bypassing MAX_PATH Limit with GHC on Windows</title>

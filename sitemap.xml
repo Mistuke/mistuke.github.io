@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://hub.zhox.com/posts/introducing-haskell-dev/</loc>
+    <lastmod>2019-08-30T07:14:25+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://hub.zhox.com/posts/bypassing-max_path-limit-on-windows/</loc>
     <lastmod>2019-08-28T23:49:39+01:00</lastmod>
   </url>
@@ -24,13 +29,13 @@
   
   <url>
     <loc>https://hub.zhox.com/posts/</loc>
-    <lastmod>2019-08-28T23:49:39+01:00</lastmod>
+    <lastmod>2019-08-30T07:14:25+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://hub.zhox.com/</loc>
-    <lastmod>2019-08-28T23:49:39+01:00</lastmod>
+    <lastmod>2019-08-30T07:14:25+01:00</lastmod>
     <priority>0</priority>
   </url>
   
