@@ -56,7 +56,7 @@ Chocolatey is supported out of the box in all major cloud CI services including 
 
 <meta itemprop="datePublished" content="2019-08-30T07:14:25&#43;01:00" />
 <meta itemprop="dateModified" content="2019-08-30T07:14:25&#43;01:00" />
-<meta itemprop="wordCount" content="1319">
+<meta itemprop="wordCount" content="1318">
 
 
 
@@ -212,11 +212,11 @@ for:
         - platform: x86
     environment:
       global:
-        GHCOPTS: --forcex86
+        CHOCOPTS: --forcex86
 
 install:
  - choco source add -n mistuke -s https://www.myget.org/F/mistuke/api/v2
- - choco install %CHOCOCMD% -y %GHCOPTS% %CHOCOPTS% --ignore-dependencies
+ - choco install %CHOCOCMD% -y %CHOCOPTS% --ignore-dependencies
  - choco install -y cabal %CHOCOPTS%
  - refreshenv
 
